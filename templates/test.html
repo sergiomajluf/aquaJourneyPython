@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Controls</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .enable {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .disable {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .status {
+            margin: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+
+        .slider-container {
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+        }
+
+        .slider-value {
+            font-size: 24px;
+            color: #333;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .slider {
+            width: 100%;
+            height: 25px;
+            background: #ddd;
+            opacity: 0.7;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Control Panel de Prueba</h1>
+        
+        <div>
+            <button onclick="toggleForm('enable')" class="button enable">
+                Habilitar Formulario
+            </button>
+            <button onclick="toggleForm('disable')" class="button disable">
+                Deshabilitar Formulario
+            </button>
+        </div>
+
+        <div class="status">
+            Estado actual: <span id="formStatus">Cargando...</span>
+        </div>
+
+        <div class="slider-container">
+            <h2>Control de Desperdicio</h2>
+            <div class="slider-value">
+                Valor actual: <span id="sliderValue">0</span>%
+            </div>
+            <input type="range" 
+                   min="0" 
+                   max="100" 
+                   value="0" 
+                   class="slider" 
+                   id="desperdicioSlider">
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('desperdicioSlider');
+        const sliderValue = document.getElementById('sliderValue');
+        
+        // Actualizar valor del slider
+        slider.oninput = function() {
+            sliderValue.textContent = this.value;
+        }
+
+        // Enviar valor al servidor cuando se suelta el slider
+        slider.onchange = async function() {
+            try {
+                const response = await fetch(`/update_desperdicio/${this.value}`);
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Valor actualizado:', data.valor);
+                }
+            } catch (error) {
+                console.error('Error al actualizar valor:', error);
+            }
+        }
+
+        async function toggleForm(state) {
+            try {
+                const response = await fetch(`/toggle_form/${state}`);
+                const data = await response.json();
+                updateStatus(data.form_enabled);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function updateStatus(enabled) {
+            const statusElement = document.getElementById('formStatus');
+            statusElement.textContent = enabled ? 'Habilitado' : 'Deshabilitado';
+            statusElement.style.color = enabled ? '#4CAF50' : '#f44336';
+        }
+
+        async function checkInitialStatus() {
+            try {
+                const response = await fetch('/toggle_form/check');
+                const data = await response.json();
+                updateStatus(data.form_enabled);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        checkInitialStatus();
+    </script>
+</body>
+</html>
